@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Instrumento</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+  </head>
+
+  <body style="background-color: #100C1F;">
+
+    <header style="color:#CCC">
+      <h1>Dashboard - Instrumento</h1>
+    </header>
+
+    <div class="container">
+      <canvas id="myChart" style="width:100%; max-width:700px"></canvas>
+    </div>
+        
+  </body>
+
+  <script>
+
+    let ws = new WebSocket('ws://' + window.location.hostname + ':81/');
+
+    var xyValues = [{x:0.0, y:0.0}];
+
+    ws.onmessage = function(event) {
+      var data = JSON.parse(event.data);
+      xyValues.push({x: data.x, y: data.y});
+      chart.update();
+    }
+
+      
+    const chart = new Chart("myChart", {
+    type: "scatter",
+    data: {
+      datasets: [{
+          label: 'Datos',
+          pointRadius: 4,
+          pointBackgroundColor: "rgb(0,255,0)",
+          data: xyValues,
+          borderColor: 'rgba(50,50,255,0.5)',
+          backgroundColor: 'rgba(0,255,0,1)'
+        }]
+      },
+      options: {
+        legend: { display: true },
+        scales: {
+          xAxes: [{
+            ticks: { min: 0, max: 30 },
+            gridLines: { color: 'rgba(0,255,255,0.2)' }
+          }],
+          yAxes: [{
+            ticks: { min: 0, max: 30 },
+            gridLines: { color: 'rgba(0,255,255,0.2)' }
+          }]
+        }
+      }
+    });
+
+    ws.onmessage = function(event) {
+      
+      var data = JSON.parse(event.data);
+      xyValues.push({x: data.x, y: data.y});
+
+      let counter = data.x;
+
+      if (counter % 30 === 0) {
+        let newMin = counter;
+        let newMax = counter + 30;
+        chart.options.scales.xAxes[0].ticks.min = newMin;
+        chart.options.scales.xAxes[0].ticks.max = newMax;
+      }
+        
+      chart.update();
+      
+    }
+
+  </script>
+
+</html>
